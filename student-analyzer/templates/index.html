@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Performance Analyzer</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #c8baa2 0%, #dcd0b8 100%);
+      color: #2d3748;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    header {
+      background: linear-gradient(135deg, #b9ab96 0%, #9a8873 100%);
+      padding: 40px 30px;
+      text-align: center;
+      color: white;
+      position: relative;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="20" cy="80" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+      opacity: 0.3;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .controls {
+      padding: 40px 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
+    input[type="file"] {
+      position: absolute;
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .file-input-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    .file-input-label:hover {
+      border-color: #4f46e5;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+      color: #4f46e5;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(79, 70, 229, 0.15);
+    }
+
+    .file-icon {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    button {
+      padding: 16px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      background: linear-gradient(135deg, #c1aa91 0%, #a89e85 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(196, 150, 105, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(172, 150, 130, 0.4);
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+      color: #a0aec0;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    button:disabled::before {
+      display: none;
+    }
+
+    #saveBtn {
+      background: linear-gradient(135deg, #70ae9a 0%, #74a799 100%);
+      box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);
+    }
+
+    #saveBtn:hover {
+      box-shadow: 0 8px 25px rgba(78, 159, 133, 0.4);
+    }
+
+    .output {
+      padding: 0 30px 40px;
+    }
+
+    .output-label {
+      display: block;
+      margin-bottom: 12px;
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 16px;
+    }
+
+    .output textarea {
+      width: 100%;
+      height: 400px;
+      padding: 20px;
+      font-size: 14px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      resize: vertical;
+      background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+      color: #2d3748;
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    .output textarea:focus {
+      outline: none;
+      border-color: #c5a770;
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+
+    .status-success {
+      background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+      color: #065f46;
+      border: 1px solid #10b981;
+    }
+
+    .status-error {
+      background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #4f46e5;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        border-radius: 16px;
+      }
+
+      header {
+        padding: 30px 20px;
+      }
+
+      header h1 {
+        font-size: 28px;
+      }
+
+      .controls {
+        padding: 30px 20px 20px;
+      }
+
+      .output {
+        padding: 0 20px 30px;
+      }
+
+      .output textarea {
+        height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Performance Analyzer</h1>
+    </header>
+
+    <section class="controls">
+      <div class="file-input-wrapper">
+        <input type="file" id="fileInput" accept=".xlsx,.xls" />
+        <label for="fileInput" class="file-input-label">
+          <svg class="file-icon" viewBox="0 0 24 24">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+          </svg>
+          Choose Excel file (.xlsx, .xls)
+        </label>
+      </div>
+      <button id="analyzeBtn" disabled>Phân Tích</button>
+      <button id="saveBtn" disabled>Lưu Kết Quả</button>
+    </section>
+
+    <section class="output">
+      <label class="output-label" for="outputArea">Kết quả phân tích</label>
+      <textarea id="outputArea" placeholder="Kết quả sẽ hiển thị ở đây..." readonly></textarea>
+    </section>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById("fileInput");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const outputArea = document.getElementById("outputArea");
+
+    let uploadedFile = null;
+
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length > 0) {
+        uploadedFile = fileInput.files[0];
+        analyzeBtn.disabled = false;
+        outputArea.value = `file đã chọn: ${uploadedFile.name}\n\nnhấn phân tích để tiếp tục`;
+        
+        // Update file input label to show selected file
+        const label = document.querySelector('.file-input-label');
+        label.innerHTML = `
+          <svg class="file-icon" viewBox="0 0 24 24">
+            <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+          </svg>
+          ✅ ${uploadedFile.name}
+        `;
+        label.style.borderColor = '#10b981';
+        label.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+        label.style.color = '#065f46';
+      }
+    });
+
+    analyzeBtn.addEventListener("click", async () => {
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+
+      // Show loading state
+      analyzeBtn.innerHTML = '<span class="loading-spinner"></span> Analyzing...';
+      analyzeBtn.disabled = true;
+      outputArea.value = "Đang phân tích...";
+
+      try {
+        const response = await fetch("/analyze", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+        if (result.analysis) {
+          outputArea.value = result.analysis;
+          saveBtn.disabled = false;
+        } else {
+          outputArea.value = `❌ Error: ${result.error}`;
+        }
+      } catch (error) {
+        outputArea.value = `❌ Network Error: ${error.message}`;
+      } finally {
+        // Reset button state
+        analyzeBtn.innerHTML = 'Phân tích';
+        analyzeBtn.disabled = false;
+      }
+    });
+
+    saveBtn.addEventListener("click", () => {
+      const blob = new Blob([outputArea.value], { type: "text/plain;charset=utf-8" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "Gemini_Analysis.txt";
+      link.click();
+      
+      // Show success feedback
+      const originalText = saveBtn.innerHTML;
+      saveBtn.innerHTML = '✅ Saved!';
+      setTimeout(() => {
+        saveBtn.innerHTML = originalText;
+      }, 2000);
+    });
+  </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970e4247c6f88582',t:'MTc1NTQ4NzA1NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
